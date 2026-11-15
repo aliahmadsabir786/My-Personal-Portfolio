@@ -528,16 +528,14 @@ img { max-width: 100%; height: auto; display: block; }
     min-height: 0; row-gap: 1.5rem;
   }
   .home__head { align-self: start; }
-  /* chips move out of the photo and sit in a row underneath it, so the face stays clear */
-  .home__handle {
-    width: min(100%, 22rem); margin-top: 0.5rem; aspect-ratio: auto;
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem;
-  }
-  .home__stage { position: relative; inset: auto; flex: 0 0 100%; aspect-ratio: 1; margin-bottom: 0.5rem; }
-  .home__handle > .chip { position: static; }
-  .about__media { max-width: 24rem; margin-inline: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
-  .about__media .frame { flex: 0 0 100%; margin-bottom: 0.5rem; }
-  .about__media > .chip { position: static; }
+  /* chips float around the photo, outside the face area */
+  .home__handle { width: min(100%, 22rem); margin: 3rem auto 1.5rem; }
+  .chip--one { left: 0; top: -2.4rem; }
+  .chip--two { right: 0; top: -0.4rem; }
+  .chip--three { left: 0; bottom: -1.1rem; }
+  .about__media { max-width: 24rem; margin: 1.75rem auto; }
+  .chip--float-a { right: 0.5rem; top: -1.4rem; }
+  .chip--float-b { left: 0.5rem; bottom: -1.4rem; }
   .frame__inner { height: 30rem; }
   .work__card--featured { flex-direction: column; }
   .work__card--featured .work__media { flex: none; aspect-ratio: 16 / 9; min-height: 0; }
