@@ -1,233 +1,213 @@
-/*=============== CHANGE BACKGROUND HEADER ===============*/
+/*=============== JS FLAG (reveal styles only apply when JS runs) ===============*/
+document.documentElement.classList.add("js");
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/*=============== HEADER BACKGROUND ON SCROLL ===============*/
+const header = document.getElementById("header");
 function scrollHeader() {
-  const header = document.getElementById("header");
-  // When the scroll is greater than 50 viewport height, add the scroll-header class to the header tag
-  if (this.scrollY >= 50) header.classList.add("scroll-header");
-  else header.classList.remove("scroll-header");
+  header.classList.toggle("scroll-header", window.scrollY >= 50);
 }
-window.addEventListener("scroll", scrollHeader);
+window.addEventListener("scroll", scrollHeader, { passive: true });
+scrollHeader();
 
-/*=============== SERVICES MODAL ===============*/
-// Get the modal
-const modalViews = document.querySelectorAll(".services__modal"),
-  modalBtns = document.querySelectorAll(".services__button"),
-  modalClose = document.querySelectorAll(".services__modal-close");
+/*=============== LIGHT / DARK THEME ===============*/
+const themeButton = document.getElementById("theme-button");
+const themeIcon = document.getElementById("theme-icon");
+const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-// When the user clicks on the button, open the modal
-let modal = function (modalClick) {
-  modalViews[modalClick].classList.add("active-modal");
-};
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  themeIcon.textContent = theme === "light" ? "light_mode" : "dark_mode";
+  themeButton.setAttribute(
+    "aria-label",
+    theme === "light" ? "Switch to dark theme" : "Switch to light theme"
+  );
+  if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#F6F5FC" : "#0A0B14");
+}
 
-modalBtns.forEach((mb, i) => {
-  mb.addEventListener("click", () => {
-    modal(i);
-  });
+let savedTheme = null;
+try {
+  savedTheme = localStorage.getItem("portfolio-theme");
+} catch (e) {}
+applyTheme(savedTheme || "dark");
+
+themeButton.addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+  applyTheme(next);
+  try {
+    localStorage.setItem("portfolio-theme", next);
+  } catch (e) {}
 });
 
-modalClose.forEach((mc) => {
-  mc.addEventListener("click", () => {
-    modalViews.forEach((mv) => {
-      mv.classList.remove("active-modal");
+/*=============== HERO PHOTO: DROP-IN ANIMATION ===============*/
+const homeImg = document.getElementById("home-img");
+const homeCircle = document.querySelector(".home__circle");
+
+function replayIntro() {
+  if (reduceMotion) return;
+  [homeCircle, homeImg].forEach((el) => {
+    el.style.animation = "none";
+    void el.offsetWidth; // restart the CSS animation
+    el.style.animation = "";
+  });
+}
+
+document.getElementById("intro-button").addEventListener("click", replayIntro);
+
+// "About me" also replays the intro as the page scrolls down
+document.querySelector(".home__button .button--ghost").addEventListener("click", () => {
+  setTimeout(replayIntro, 300);
+});
+
+// Replay every time the hero comes back into view after leaving it
+const homeSection = document.getElementById("home");
+let homeWasHidden = false;
+new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) {
+        homeWasHidden = true;
+      } else if (homeWasHidden) {
+        homeWasHidden = false;
+        replayIntro();
+      }
     });
-  });
-});
-
-/*=============== MIXITUP FILTER PORTFOLIO ===============*/
-
-let mixer = mixitup(".work__container", {
-  selectors: {
-    target: ".work__card",
   },
-  animation: {
-    duration: 300,
-  },
-});
+  { threshold: 0.35 }
+).observe(homeSection);
 
-/* Link active work */
-const workLinks = document.querySelectorAll(".work__item");
-
-function activeWork(workLink) {
-  workLinks.forEach((wl) => {
-    wl.classList.remove("active-work");
-  });
-  workLink.classList.add("active-work");
+/*=============== SCROLL REVEAL + COUNTERS ===============*/
+function runCounter(el) {
+  const target = Number(el.dataset.count);
+  if (reduceMotion || !target) return;
+  const duration = 1200;
+  const start = performance.now();
+  el.textContent = "0";
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
-workLinks.forEach((wl) => {
-  wl.addEventListener("click", () => {
-    activeWork(wl);
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      entry.target.querySelectorAll(".count").forEach(runCounter);
+      revealObserver.unobserve(entry.target);
+    });
+  },
+  { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+);
+document.querySelectorAll(".reveal").forEach((el, i) => {
+  // stagger siblings a little
+  el.style.transitionDelay = (i % 3) * 90 + "ms";
+  revealObserver.observe(el);
+});
+
+/*=============== SERVICES PANEL ===============*/
+const services = [
+  {
+    title: "Web development",
+    text: "I design and develop consumer products with a creative, hands-on approach that meets what customers and markets need.",
+    items: [
+      "I develop the user interfaces.",
+      "Web page design and development.",
+      "I create the UX element interactions.",
+      "I position your company brand.",
+      "Create modern 3D experiences.",
+    ],
+  },
+  {
+    title: "Modern stack",
+    text: "I build web-based software with modern technology: Python, Flask and FastAPI with a properly designed MySQL database.",
+    items: [
+      "I develop the modern technology backend.",
+      "Web page design and development.",
+      "I create backend logic with interactions.",
+      "I position your company brand.",
+      "Create modern technology web apps.",
+    ],
+  },
+  {
+    title: "API development and design",
+    text: "I design and develop clean APIs that connect your products and keep them fast, secure and easy to extend.",
+    items: [
+      "I develop the user interfaces.",
+      "Web page design and development.",
+      "I create the UX element interactions.",
+      "I position your company brand.",
+      "Create modern 3D experiences.",
+    ],
+  },
+];
+
+const serviceCards = document.querySelectorAll(".services__card");
+const panel = document.getElementById("service-panel");
+const panelTitle = document.getElementById("panel-title");
+const panelDesc = document.getElementById("panel-desc");
+const panelList = document.getElementById("panel-list");
+
+function showService(index) {
+  const s = services[index];
+  panelTitle.textContent = s.title;
+  panelDesc.textContent = s.text;
+  panelList.innerHTML = "";
+  s.items.forEach((text) => {
+    const li = document.createElement("li");
+    const icon = document.createElement("span");
+    icon.className = "ms";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "check_circle";
+    li.append(icon, document.createTextNode(text));
+    panelList.appendChild(li);
   });
-});
+  serviceCards.forEach((card, i) => {
+    const open = i === index;
+    card.classList.toggle("is-open", open);
+    card.setAttribute("aria-expanded", String(open));
+    card.querySelector(".services__button-text").textContent = open ? "Details open" : "See more";
+  });
+  panel.classList.remove("is-changing");
+  void panel.offsetWidth;
+  panel.classList.add("is-changing");
+}
 
-/*=============== SWIPER TESTIMONIAL ===============*/
+serviceCards.forEach((card, i) => card.addEventListener("click", () => showService(i)));
+showService(0);
 
-let swiperTestimonial = new Swiper(".testimonial__container", {
-  spaceBetween: 24,
-  loop: true,
-  grabCursor: true,
-
-  pagination: {
-    el: ".swiper-pagination",
-    clickable: true,
-  },
-
-  breakpoints: {
-    576: {
-      slidesPerView: 2,
-    },
-    768: {
-      slidesPerView: 2,
-      spaceBetween: 48,
-    },
-  },
-});
-
-/*=============== SCROLL SECTIONS ACTIVE LINK ===============*/
-
-const sections = document.querySelectorAll("section[id]");
+/*=============== ACTIVE NAV LINK ===============*/
+const sections = document.querySelectorAll("main section[id]");
+const navLinks = document.querySelectorAll(".nav__link");
 
 function scrollActive() {
-  const scrollY = window.pageYOffset;
-
-  sections.forEach((current) => {
-    const sectionHeight = current.offsetHeight,
-      sectionTop = current.offsetTop - 58,
-      sectionId = current.getAttribute("id");
-
-    if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-      document
-        .querySelector(".nav__menu a[href*=" + sectionId + "]")
-        .classList.add("active-link");
-    } else {
-      document
-        .querySelector(".nav__menu a[href*=" + sectionId + "]")
-        .classList.remove("active-link");
-    }
+  const y = window.scrollY + window.innerHeight * 0.35;
+  let currentId = sections[0].id;
+  sections.forEach((s) => {
+    if (y >= s.offsetTop) currentId = s.id;
+  });
+  // "services" has no nav entry, so keep Skills highlighted there
+  if (currentId === "services") currentId = "skills";
+  navLinks.forEach((link) => {
+    link.classList.toggle("active-link", link.getAttribute("href") === "#" + currentId);
   });
 }
-window.addEventListener("scroll", scrollActive);
+window.addEventListener("scroll", scrollActive, { passive: true });
+scrollActive();
 
-/*=============== LIGHT DARK THEME ===============*/
-const themeButton = document.getElementById("theme-button");
-const lightTheme = "light-theme";
-const iconTheme = "bx-sun";
-
-// Previously selected topic (if user selected)
-const selectedTheme = localStorage.getItem("selected-theme");
-const selectedIcon = localStorage.getItem("selected-icon");
-
-// We obtain the current theme that the interface has by validating the light-theme class
-const getCurrentTheme = () =>
-  document.body.classList.contains(lightTheme) ? "dark" : "light";
-const getCurrentIcon = () =>
-  themeButton.classList.contains(iconTheme) ? "bx bx-moon" : "bx bx-sun";
-
-// We validate if the user previously chose a topic
-if (selectedTheme) {
-  // If the validation is fulfilled, we ask what the issue was to know if we activated or deactivated the light
-  document.body.classList[selectedTheme === "dark" ? "add" : "remove"](
-    lightTheme
-  );
-  themeButton.classList[selectedIcon === "bx bx-moon" ? "add" : "remove"](
-    iconTheme
-  );
-}
-
-// Activate / deactivate the theme manually with the button
-themeButton.addEventListener("click", () => {
-  // Add or remove the light / icon theme
-  document.body.classList.toggle(lightTheme);
-  themeButton.classList.toggle(iconTheme);
-  // We save the theme and the current icon that the user chose
-  localStorage.setItem("selected-theme", getCurrentTheme());
-  localStorage.setItem("selected-icon", getCurrentIcon());
-});
-
-/*=============== SCROLL REVEAL ANIMATION ===============*/
-const sr = ScrollReveal({
-  origin: "top",
-  distance: "60px",
-  duration: 2500,
-  delay: 400,
-  reset: true,
-});
-
-sr.reveal(`.nav__menu`, {
-  delay: 100,
-  scale: 0.1,
-  origin: "bottom",
-  distance: "300px",
-});
-
-sr.reveal(`.home__data`);
-sr.reveal(`.home__handle`, {
-  delay: 100,
-});
-
-sr.reveal(`.home__social, .home__scroll`, {
-  delay: 100,
-  origin: "bottom",
-});
-
-sr.reveal(`.about__img`, {
-  delay: 100,
-  origin: "left",
-  scale: 0.9,
-  distance: "30px",
-});
-
-sr.reveal(`.about__data, .about__description, .about__button-contact`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "right",
-  distance: "30px",
-});
-
-sr.reveal(`.skills__content`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "bottom",
-  distance: "30px",
-});
-
-sr.reveal(`.services__title, services__button`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "top",
-  distance: "30px",
-});
-
-sr.reveal(`.work__card`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "bottom",
-  distance: "30px",
-});
-
-sr.reveal(`.testimonial__container`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "bottom",
-  distance: "30px",
-});
-
-sr.reveal(`.contact__info, .contact__title-info`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "left",
-  distance: "30px",
-});
-
-sr.reveal(`.contact__form, .contact__title-form`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "right",
-  distance: "30px",
-});
-
-sr.reveal(`.footer, footer__container`, {
-  delay: 100,
-  scale: 0.9,
-  origin: "bottom",
-  distance: "30px",
+/*=============== CONTACT FORM (opens your email app) ===============*/
+const form = document.getElementById("contact-form");
+const note = document.getElementById("form-note");
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const data = new FormData(form);
+  const subject = "Portfolio message from " + data.get("name");
+  const body = data.get("message") + "\n\nFrom: " + data.get("name") + " (" + data.get("email") + ")";
+  window.location.href =
+    "mailto:ahmadultani2004@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  note.textContent = "Your email app should open with the message ready to send.";
 });
