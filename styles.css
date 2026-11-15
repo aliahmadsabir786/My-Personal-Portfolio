@@ -528,14 +528,10 @@ img { max-width: 100%; height: auto; display: block; }
     min-height: 0; row-gap: 1.5rem;
   }
   .home__head { align-self: start; }
-  /* chips float around the photo, outside the face area */
-  .home__handle { width: min(100%, 22rem); margin: 3rem auto 1.5rem; }
-  .chip--one { left: 0; top: -2.4rem; }
-  .chip--two { right: 0; top: -0.4rem; }
-  .chip--three { left: 0; bottom: -1.1rem; }
-  .about__media { max-width: 24rem; margin: 1.75rem auto; }
-  .chip--float-a { right: 0.5rem; top: -1.4rem; }
-  .chip--float-b { left: 0.5rem; bottom: -1.4rem; }
+  .home__handle { width: min(100%, 22rem); margin-top: 0.5rem; }
+  .chip--one { left: 0; }
+  .chip--two { right: 0; }
+  .about__media { max-width: 24rem; margin-inline: auto; }
   .frame__inner { height: 30rem; }
   .work__card--featured { flex-direction: column; }
   .work__card--featured .work__media { flex: none; aspect-ratio: 16 / 9; min-height: 0; }
@@ -557,11 +553,10 @@ img { max-width: 100%; height: auto; display: block; }
   .chip { font-size: 0.68rem; gap: 0.45rem; padding: 0.3rem 0.65rem 0.3rem 0.3rem; border-radius: 0.8rem; }
   .chip__icon { width: 1.55rem; height: 1.55rem; border-radius: 0.5rem; }
   .chip__icon .ms { font-size: 1rem; }
-  .chip--one { top: -1.9rem; }
-  .chip--two { top: 0; }
-  .chip--three { bottom: -0.8rem; }
-  .chip--float-a { top: -1.1rem; }
-  .chip--float-b { bottom: -1.1rem; }
+  .chip--one { top: 6%; }
+  .chip--three { bottom: 8%; }
+  .chip--float-a { right: 0.5rem; top: 1.5rem; }
+  .chip--float-b { left: 0.5rem; bottom: 2rem; }
   .contact__card { padding: 1.1rem; }
   .contact__button { display: none; }
   .footer__container { flex-direction: column; align-items: flex-start; }
