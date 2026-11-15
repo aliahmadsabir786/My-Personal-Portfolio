@@ -5,8 +5,11 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 
 /*=============== HEADER BACKGROUND ON SCROLL ===============*/
 const header = document.getElementById("header");
+const progressBar = document.getElementById("progress-bar");
 function scrollHeader() {
   header.classList.toggle("scroll-header", window.scrollY >= 50);
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.transform = "scaleX(" + (max > 0 ? Math.min(window.scrollY / max, 1) : 0) + ")";
 }
 window.addEventListener("scroll", scrollHeader, { passive: true });
 scrollHeader();
@@ -198,6 +201,72 @@ function scrollActive() {
 }
 window.addEventListener("scroll", scrollActive, { passive: true });
 scrollActive();
+
+/*=============== SECTION TITLES: WORD-BY-WORD REVEAL ===============*/
+document.querySelectorAll(".section__title").forEach((title) => {
+  const words = title.textContent.trim().split(/\s+/);
+  title.setAttribute("aria-label", title.textContent.trim());
+  title.innerHTML = "";
+  words.forEach((word, i) => {
+    const outer = document.createElement("span");
+    outer.className = "w";
+    outer.setAttribute("aria-hidden", "true");
+    const inner = document.createElement("span");
+    inner.style.setProperty("--i", i);
+    inner.textContent = word;
+    outer.appendChild(inner);
+    title.appendChild(outer);
+    if (i < words.length - 1) title.appendChild(document.createTextNode(" "));
+  });
+});
+
+/*=============== TYPED ROLE ===============*/
+const typedEl = document.getElementById("typed");
+if (typedEl && !reduceMotion) {
+  const roles = [
+    "Software Engineer, Python",
+    "Backend Developer",
+    "Flask & Django Developer",
+    "API & Database Designer",
+  ];
+  let r = 0, c = 0, deleting = false;
+  function type() {
+    const word = roles[r];
+    c += deleting ? -1 : 1;
+    typedEl.textContent = word.slice(0, c);
+    let delay = deleting ? 35 : 70;
+    if (!deleting && c === word.length) { deleting = true; delay = 1800; }
+    else if (deleting && c === 0) { deleting = false; r = (r + 1) % roles.length; delay = 350; }
+    setTimeout(type, delay);
+  }
+  setTimeout(() => { deleting = true; c = roles[0].length; type(); }, 2200);
+}
+
+/*=============== CARD SPOTLIGHT + PHOTO TILT (mouse only) ===============*/
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+if (finePointer && !reduceMotion) {
+  document
+    .querySelectorAll(".about__box, .skills__content, .services__card, .services__panel, .work__card, .contact__card, .contact__form")
+    .forEach((card) => {
+      card.classList.add("spot");
+      card.addEventListener("pointermove", (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty("--mx", e.clientX - rect.left + "px");
+        card.style.setProperty("--my", e.clientY - rect.top + "px");
+      });
+    });
+
+  const handle = document.querySelector(".home__handle");
+  handle.addEventListener("pointermove", (e) => {
+    const rect = handle.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    homeCircle.style.transform = "rotateY(" + x * 10 + "deg) rotateX(" + -y * 10 + "deg)";
+  });
+  handle.addEventListener("pointerleave", () => {
+    homeCircle.style.transform = "";
+  });
+}
 
 /*=============== CONTACT FORM (opens your email app) ===============*/
 const form = document.getElementById("contact-form");

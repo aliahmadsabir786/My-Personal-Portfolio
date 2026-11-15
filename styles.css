@@ -20,8 +20,8 @@
   --grid-line: rgba(255, 255, 255, 0.04);
   --photo-bg: linear-gradient(170deg, #1b1740, #0f1020 60%, #2a1a28);
 
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -128,7 +128,7 @@ img { max-width: 100%; height: auto; display: block; }
   text-transform: uppercase; color: var(--accent);
 }
 .section__subtitle .ms { font-size: 1.25rem; }
-.section__title { font-size: clamp(2.5rem, 6vw, 3.75rem); letter-spacing: -0.035em; font-weight: 700; text-wrap: balance; }
+.section__title { font-size: clamp(2.2rem, 5vw, 3.4rem); letter-spacing: -0.035em; font-weight: 700; text-wrap: balance; }
 
 .gradient-text {
   background: linear-gradient(100deg, #b8aeff, #ffb48a, #b8aeff);
@@ -189,13 +189,16 @@ img { max-width: 100%; height: auto; display: block; }
 /*=============== HEADER ===============*/
 .header {
   position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-header);
-  transition: background 0.3s, box-shadow 0.3s, backdrop-filter 0.3s;
 }
-.header.scroll-header {
+/* The blur lives on a pseudo-element: a backdrop-filter on the header itself would
+   make the fixed mobile nav stick to the header instead of the screen. */
+.header::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; pointer-events: none;
   background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 var(--line);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 var(--line); transition: opacity 0.3s;
 }
+.header.scroll-header::before { opacity: 1; }
 .nav { height: var(--header-height); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .nav__logo { display: flex; align-items: center; gap: 0.75rem; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--text); letter-spacing: -0.01em; }
 .nav__logo-mark {
@@ -263,7 +266,7 @@ img { max-width: 100%; height: auto; display: block; }
 .home__dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
 
 .home__greeting { font-family: var(--font-mono); font-size: 1.05rem; color: var(--accent); }
-.home__name { font-size: clamp(2.9rem, 7.4vw, 5.75rem); line-height: 0.98; letter-spacing: -0.04em; font-weight: 700; }
+.home__name { font-size: clamp(2.5rem, 6.2vw, 5rem); line-height: 1.02; letter-spacing: -0.045em; font-weight: 700; }
 .home__education { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.9rem; font-size: clamp(1.1rem, 2.4vw, 1.75rem); font-weight: 500; color: var(--soft); }
 .home__education .ms { color: var(--accent-2); font-size: 1.9rem; }
 .home__description { max-width: 34rem; font-size: 1.125rem; line-height: 1.65; color: var(--muted); }
@@ -467,6 +470,49 @@ img { max-width: 100%; height: auto; display: block; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(120, 230, 170, 0.55); } 100% { box-shadow: 0 0 0 12px rgba(120, 230, 170, 0); } }
 @keyframes shine { 0% { left: -60%; } 60%, 100% { left: 130%; } }
 @keyframes slideup { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+/*=============== EXTRA MOTION ===============*/
+/* scroll progress bar */
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 200; pointer-events: none; }
+.progress span { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+/* word-by-word title reveal */
+.w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.w > span { display: inline-block; }
+.home__name .w > span { animation: wordUp 1s var(--ease) calc(var(--i) * 0.12s + 0.2s) both; }
+.js .section__title .w > span { transform: translateY(115%); transition: transform 0.9s var(--ease) calc(var(--i) * 0.09s + 0.1s); }
+.js .is-visible .section__title .w > span, .js .section__title.is-visible .w > span { transform: none; }
+
+/* typed role */
+.caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 4px; background: var(--accent); transform: translateY(2px); animation: blink 1s steps(1) infinite; }
+
+/* cursor spotlight on cards */
+.spot { position: relative; overflow: hidden; }
+.spot::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.35s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%);
+}
+.spot:hover::after { opacity: 1; }
+
+/* animated gradient edge on the photo ring */
+.home__circle::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 70%, color-mix(in srgb, var(--accent) 80%, transparent) 85%, transparent 100%);
+  -webkit-mask: radial-gradient(circle, transparent 66%, #000 67%); mask: radial-gradient(circle, transparent 66%, #000 67%);
+  animation: spin 6s linear infinite;
+}
+.home__handle { perspective: 900px; }
+.home__circle { transition: transform 0.2s ease-out; }
+
+/* richer hover motion */
+.button .ms { transition: transform 0.3s var(--ease); }
+.button:hover .ms { transform: translateX(4px); }
+.about__box:hover .about__icon, .services__card:hover .services__icon, .contact__card:hover .contact__card-icon { animation: wobble 0.7s var(--ease); }
+.nav__link.active-link { box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
+
+@keyframes wordUp { from { transform: translateY(115%); } to { transform: none; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes wobble { 0% { transform: scale(1) rotate(0); } 40% { transform: scale(1.12) rotate(-8deg); } 70% { transform: scale(1.06) rotate(5deg); } 100% { transform: scale(1) rotate(0); } }
 
 /*=============== MEDIA ===============*/
 @media screen and (max-width: 1080px) {
